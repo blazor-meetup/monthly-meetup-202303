@@ -1,0 +1,107 @@
+﻿@page "/mssql"
+@using efcore.Models;
+@inject BlazorMeetupContext context;
+
+<PageTitle>Person Table</PageTitle>
+
+<h1>Person Table</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>이름</th>
+            <th>나이</th>
+            <th>메일주소</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><InputText @bind-Value="name" /></td>
+            <td><InputText @bind-Value="age" /></td>
+            <td><InputText @bind-Value="addr" /></td>
+        </tr>
+    </tbody>
+</table>
+<button @onclick="btnSave">저장</button>
+<button @onclick="btnLoad">조회</button>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>DbId</th>
+            <th>이름</th>
+            <th>나이</th>
+            <th>메일주소</th>
+            <th>삭제버튼</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var person in persons)
+        {
+            int dbid = @person.DbId;
+            <tr>
+                <td>@person.DbId</td>
+                <td>@person.Name</td>
+                <td>@person.Age</td>
+                <td>@person.MailAddress</td>
+                <td><button @onclick="() => btnDelete(dbid)">삭제</button></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Person> persons = new();
+    private String name;
+    private String age;
+    private String addr;
+
+    private void btnLoad()
+    {
+        try
+        {
+            persons = context.Person.ToList();
+        }
+        catch (Exception exception)
+        {
+            Console.WriteLine(exception.Message);
+        }
+    }
+
+    private void btnSave()
+    {
+        try
+        {
+            Person p = new()
+                {
+                    Name = this.name,
+                    Age = Convert.ToInt32(this.age),
+                    MailAddress = this.addr
+                };
+            context.Add(p);
+            context.SaveChanges();
+
+            this.name = "";
+            this.age = "";
+            this.addr = "";
+        }
+        catch (Exception exception)
+        {
+            Console.WriteLine($"테이블 수량{exception.Message}");
+
+        }
+
+        Console.WriteLine($"{this.name} {age} {addr}");
+    }
+
+    private void btnDelete(int dbId)
+    {
+        var p = context.Person.SingleOrDefault(x => x.DbId == dbId);
+        if( p != null )
+        {
+            context.Person.Remove(p);
+            context.SaveChanges();
+        }
+        Console.WriteLine($"삭제 {dbId}");
+    }
+}

@@ -1,0 +1,64 @@
+﻿@page "/"
+@using bpac;
+
+<PageTitle>Index</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<button @onclick="btnPrint">인쇄</button>
+
+<SurveyPrompt Title="How is Blazor working for you?" />
+
+@code
+{
+	private void btnPrint()
+	{
+		string path = Directory.GetCurrentDirectory() + "/wwwroot/label/blazor.lbx";
+		Console.WriteLine($"현재 위치[{path}]");
+		DocumentClass doc = new DocumentClass();
+
+		if (doc.Open(path) != false)
+		{
+			// Acquire the printer list
+			object[] printers = (object[])doc.Printer.GetInstalledPrinters();
+
+			// Acquire the printer name
+			// string printerName = doc.GetPrinterName();
+			string printerName = printers[0].ToString();
+
+			// Check that the printer is online
+			if (doc.Printer.IsPrinterOnline(printerName))
+			{
+				Console.WriteLine($"{printerName} Online");
+			}
+			else
+			{
+				Console.WriteLine("Offline");
+			}
+
+			var rc = doc.StartPrint("", PrintOptionConstants.bpoDefault);
+			if (rc)
+			{
+				Console.WriteLine("인쇄시작성공");
+			}
+			else
+			{
+				Console.WriteLine("인쇄실패");
+			}
+			if (doc.PrintOut(1, PrintOptionConstants.bpoDefault))
+			{
+				Console.WriteLine("인쇄성공");
+			}
+			else
+			{
+				Console.WriteLine($"{doc.ErrorCode}");
+			}
+			doc.EndPrint();
+			doc.Close();
+		}
+
+		Console.WriteLine("인쇄해 봅시다");
+	}
+}
